@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>炼丹模拟器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            height: 100%;
+            /*display: flex; /* 使用 Flexbox 布局 */
+            margin: 0;
+            background-image: url('map3.png'); /* 设置背景图片 */
+            /*background-size: cover; /* 使背景图片覆盖整个视口 */
+            background-position: center; /* 使背景图片居中 */
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-repeat: no-repeat; /* 防止背景图片重复 */
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-family: 'Pacifico', cursive; /* 使用 Pacifico 字体 */
+            font-size: 48px; /* 增大字体大小 */
+            color: #000; /* 黑色文字 */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* 文本阴影 */
+            line-height: 1.2;
+            letter-spacing: 2px;
+            font-weight: bold;
+            text-transform: capitalize; /* 首字母大写 */
+        }
+        .container {
+            display: flex;
+            margin-top: -40px;
+            justify-content: space-between;
+        }
+        .left-side, .output,.right-side {
+            flex: 1; /* 左右两侧等宽 */
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .left-side {
+            border-right: 1px solid #ddd; /* 右侧边框 */
+        }
+        .material-button {
+            display: block; /* 使按钮在同一行显示 */
+            width: 150px; /* 宽度 */
+            height: 40px; /* 高度 */
+            padding: 10px; /* 内边距 */
+            margin: 5px; /* 外边距 */
+            background-color: rgba(66, 149, 218, 0.5); /* 背景颜色 */
+            color: white; /* 文字颜色 */
+            border: none; /* 边框 */
+            border-radius: 5px; /* 圆角 */
+            cursor: pointer; /* 鼠标指针样式 */
+            font-size: 16px; /* 字体大小 */
+            text-align: left; /* 文本左对齐 */
+        }
+
+        .material-button:hover {
+            background-color: #273442; /* 悬停时背景颜色 */
+        }
+        .selected-item-button {
+            display: block;
+            /*width: 100%;*/
+            width: 150px; /* 宽度 */
+            height: 50px; /* 高度 */
+            padding: 10px;
+            margin: 5px 0;
+            background-color:rgba(40, 167, 69, 0.5);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left; /* 文本左对齐 */
+        }
+        .danyao-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: rgba(60, 24, 190, 0.5);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            /*text-align: left; /* 文本左对齐 */
+        }
+        .generate-selected-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .material-button:hover,
+        .selected-item-button:hover,
+        .danyao-button:hover,
+        .generate-selected-button:hover {
+            background-color: #0056b3; /* 更深的颜色 */
+            transform: translateY(-2px); /* 微小上移 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加阴影 */
+        }
+        .material-button:active,
+        .selected-item-button:active,
+        .danyao-button:active,
+        .generate-selected-button:active {
+            background-color: #004494; /* 更深的颜色 */
+            transform: translateY(0); /* 移除上移效果 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 减少阴影 */
+        }
+        /*好像没用下面的*/
+        .danyao-button,
+        .generate-selected-button {
+            width: 100%; /* 占满容器宽度 */
+            margin-top: 10px;
+        }
+
+        .generate-selected-button {
+            background-color: #28a745; /* 不同的背景色 */
+        }
+
+        .generate-selected-button:hover {
+            background-color: #218838; /* 悬停时更深的颜色 */
+        }
+        /*模态框*/
+        .modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4); /* 半透明黑色背景 */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 垂直居中 */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* 宽度 */
+            max-width: 300px; /* 最大宽度 */
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* 加载动画 */
+        .loader {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 46%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* 备注样式 */
+        footer {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            text-align: left; /* 左对齐文本 */
+            font-size: 1.2em;
+            position: fixed; /* 固定定位 */
+            bottom: 0; /* 底部 */
+            left: 0; /* 左侧 */
+            width: auto; /* 自动宽度 */
+            max-width: 50%; /* 最大宽度限制，可以根据需要调整 */
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left-side, .right-side {
+                width: 100%;
+            }
+        }
+        /*新按钮*/
+        .cost-display {
+            position: fixed; /* 固定定位 */
+            right: 125px; /* 距离右边20px */
+            bottom: 390px; /* 距离底部60px，以确保在按钮网格上方 */
+            text-align: center;
+            font-size: 24px;
+            border: none; /* 去掉默认边框 */
+            background-color: rgba(22, 224, 83, 0.5);
+            padding: 5px 10px;
+            
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 100; /* 确保费用显示在按钮网格之上 */
+        }
+        .button-grid-container {
+            position: fixed; /* 固定定位 */
+            right: 20px; /* 距离右边20px */
+            bottom: 20px; /* 距离底部20px */
+            width: auto; /* 自动宽度 */
+            max-width: 300px; /* 最大宽度 */
+            border: none; /* 去掉默认边框 */
+        }
+        .button-grid, .selected-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            padding: 5px;
+            background-color: rgba(60, 24, 190, 0.5);
+            border: none; /* 去掉默认边框 */
+            border: 1px solid #ccc;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .button-grid button, .selected-buttons button {
+            width: 100%;
+            padding: 10px;
+            cursor: pointer;
+            background-color: rgba(21, 197, 209, 0.5); /* 按钮背景颜色 */
+            color: white; /* 按钮文本颜色 */
+            border: none; /* 去掉默认边框 */
+            border-radius: 5px; /* 圆角 */
+            transition: background-color 0.3s ease; /* 平滑过渡效果 */
+        }
+        .button-grid button:hover, .selected-buttons button:hover {
+            background-color: #3c11c9; /* 鼠标悬停时的背景颜色 */
+        }
+
+        .button-grid button:hover::after, .selected-buttons button:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            top: -20px; /* 调整这个值以适应你的设计 */
+            transform: translateX(-50%);
+            background-color: rgba(60, 24, 190, 0.5);
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            /*white-space: nowrap;*/
+            white-space: pre; /* 保留空格和换行符 */
+            z-index: 10;
+        }
+        /* 右上角按钮样式 */
+        .guide-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: rgba(60, 24, 190, 0.5);
+            color: white;
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .guide-button:hover {
+            background-color: rgba(60, 24, 190, 0.5);
+        }
+         /* 左侧属性显示区域样式 */
+        .attributes-container {
+            position: fixed;
+            top: 590px;
+            left: 20px;
+            width: 200px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .attribute {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .attribute label {
+            flex: 1;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .attribute input {
+            flex: 1;
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            background-color: #f0f0f0; /* 输入框背景颜色 */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            color: #333;
+        }
+        .consume-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #3c18be;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .consume-button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        .music-control {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .music-control button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #4CAF50; /* Green */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .music-control button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 添加音乐文件 -->
+<audio id="bgm" src="music.mp3" autoplay loop muted></audio>
+
+<!-- 添加音乐控制按钮 -->
+<div class="music-control">
+    <button onclick="toggleMusic()">播放/暂停音乐</button>
+</div>
+
+<div class="cost-display" id="costDisplay">(15/15)</div>
+<div class="button-grid-container">
+    <div class="selected-buttons" id="selectedButtons"></div>
+    <div class="button-grid" id="buttonGrid"></div>
+</div>
+
+<!-- 右上角按钮 -->
+<button id="guideButton" class="guide-button">攻略手册</button>
+
+<!-- 模态框 -->
+<div id="guideModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>攻略手册</h2>
+    <p>这里是攻略手册的内容。你可以在这里添加更多的信息。</p>
+    <!-- 在这里添加更多内容 -->
+  </div>
+</div>
+
+<div class="header">
+    <h1>炼丹模拟器</h1>
+</div>
+<div class="container">
+    <div class="left-side">
+        <label for="materialsInput">请输入材料（用“、”分隔）:</label>
+        <input type="text" id="materialsInput" placeholder="如：草药、南瓜">
+        <button id="generateButton">生成丹药信息</button>
+        <div id="items"></div>
+        <button id="prev" onclick="changePage(-1)">上一页</button>
+        <button id="next" onclick="changePage(1)">下一页</button>
+    </div>
+    <div class="output" id="output"></div>
+    <div class="right-side">
+        <div id="selected-items"></div>
+        <button id="generateSelectedButton" class="generate-selected-button" onclick="generateSelectedOutput()">生成选定项的丹药信息</button>
+    </div>
+</div>
+
+<!-- 模态框 -->
+<div id="loadingModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>炼丹中...</p>
+        <div class="loader"></div>
+    </div>
+</div>
+
+<!-- 左侧属性显示区域 -->
+<div class="attributes-container" id="attributesContainer">
+    <div class="attribute">
+      <label for="health">生命:</label>
+      <input type="number" id="health" value="100" readonly>
+      <span id="health-change"></span>
+    </div>
+    <div class="attribute">
+      <label for="attack">攻击力:</label>
+      <input type="number" id="attack" value="50" readonly>
+      <span id="attack-change"></span>
+    </div>
+    <div class="attribute">
+      <label for="agility">敏捷:</label>
+      <input type="number" id="agility" value="30" readonly>
+      <span id="agility-change"></span>
+    </div>
+    <div class="attribute">
+      <label for="intelligence">智力:</label>
+      <input type="number" id="intelligence" value="20" readonly>
+      <span id="intelligence-change"></span>
+    </div>
+    <button class="consume-button" id="consumeButton">服用</button>
+</div>
+
+<!-- 备注部分 -->
+<footer>
+    <p>这是一个炼丹模拟器,点击左边的材料进行炼丹。<br>仅供娱乐和学习使用，请勿用于非法或商业用途。</p>
+</footer>
+
+<script>
+    // 获取音频对象
+    const bgm = document.getElementById('bgm');
+
+    // 切换音乐播放状态
+    function toggleMusic() {
+        if (bgm.paused) {
+            bgm.muted = false;
+            bgm.play();
+        } else {
+            bgm.pause();
+        }
+    }
+
+    // 尝试自动播放音乐
+    try {
+        bgm.play();
+        console.log("ccccc")
+    } catch (error) {
+        console.error('音乐未能自动播放，请手动点击播放按钮。');
+    }
+
+    const costDisplay = document.getElementById('costDisplay');
+    let remainingCost = 13;
+    let currentCost = 0;
+    // 全局变量记录当前存在的丹药数量
+    let pillCount = 0;
+    // 容器存储生成的丹药信息
+    let pillInfo = null;
+    const buttonsConfig = [
+        { name: '太上老君的备忘录', tooltip: '增强丹药的功效' , cost: 7},
+        { name: '女娲补天石', tooltip: '投入丹炉可稳定丹炉能量，提升丹药品质，降低丹药邪气，减少副作用。costs 5', cost: 7 },
+        { name: '太白金星拂尘', tooltip: '轻轻一挥，净化炼丹环境，提高成功率。 costs 5' , cost: 7},
+        { name: '玉兔捣药杵', tooltip: '加快材料融合速度。costs 5' , cost: 7},
+        { name: '神农百草囊', tooltip: '打开可随机为炼丹过程增加珍稀炼丹药材。 costs 4' , cost: 5},
+        { name: '铁扇公主的宝扇', tooltip: '挥动铁扇，增加炼丹炉内的火气，为丹药概率\n增加五行中的火属性，丹药效果提升，可能会使人火气增加。\ncosts 4' , cost: 5},
+        { name: '龙王镇海珠', tooltip: '使丹药具有水属性的滋养效果，带有龙王效果。costs 4' , cost: 5},
+        { name: '巫山神女云裳锦', tooltip: '包裹丹炉，赋予丹药神秘的云雾之力。costs 4' , cost: 5},
+        { name: '二郎神天眼宝镜', tooltip: '透视丹药内部结构，便于调整炼丹过程。costs 3' , cost: 4},
+        { name: '精卫填海石', tooltip: '增加丹炉的稳定性和耐久性。costs 3' , cost: 4},
+        { name: '镇元大仙人参果核', tooltip: '增强丹药生命力，一定程度降低副作用。 costs 3' , cost: 4},
+        { name: '灵虚子的狼毛', tooltip: '对丹药附加妖气以及五行中的水属性，寒气外露，cost：4' , cost: 4}
+  ];
+    function updateCostDisplay() {
+        costDisplay.textContent = `(${currentCost}/13)`;
+    }
+    // 存储复制的按钮信息
+    const selectedButtonsInfo = [];
+
+    function createButtons() {
+        const buttonGrid = document.getElementById('buttonGrid');
+        buttonsConfig.forEach((config, index) => {
+            /*const row = Math.ceil((index + 1) / 4); // 计算行数
+            const cost = 6 - row; // 每行的费用递减*/
+            const button = document.createElement('button');
+            button.textContent = config.name;
+            button.dataset.tooltip = config.tooltip;
+            button.addEventListener('click', () => {
+                if (remainingCost >= config.cost) {
+                remainingCost -= config.cost;
+                currentCost += config.cost;
+                updateCostDisplay();
+                const newButton = button.cloneNode(true);
+                newButton.removeEventListener('click', arguments.callee); // 移除原始点击事件
+                newButton.addEventListener('click', () => {
+                    const buttonName = newButton.textContent;
+                    const buttonTooltip = newButton.dataset.tooltip;
+                    // 找到并移除对应的按钮信息
+                    const indexToRemove = selectedButtonsInfo.findIndex(info => info.button === newButton);
+                    if (indexToRemove !== -1) {
+                    selectedButtonsInfo.splice(indexToRemove, 1);
+                    }
+                    /*console.log('Selected Buttons Info:', selectedButtonsInfo);*/
+                    newButton.remove();
+                    remainingCost += config.cost;
+                    currentCost -= config.cost;
+                    updateCostDisplay();
+                });
+                // 将按钮信息存储到数组中，并关联按钮元素
+                selectedButtonsInfo.push({ button: newButton, name: config.name, tooltip: config.tooltip  });
+                /*console.log('Selected Buttons Info:', selectedButtonsInfo);*/
+                document.getElementById('selectedButtons').appendChild(newButton);
+            } else {
+                alert("你的法力值不足!");
+            }
+        });
+        buttonGrid.appendChild(button);
+    });
+    }
+    createButtons();
+    updateCostDisplay(); // 初始化成本显示
+    // 模态框控制
+    const guideButton = document.getElementById('guideButton');
+    const guideModal = document.getElementById('guideModal');
+    const closeButton = guideModal.querySelector('.close');
+
+    guideButton.addEventListener('click', () => {
+        guideModal.style.display = 'block';
+    });
+
+    closeButton.addEventListener('click', () => {
+        guideModal.style.display = 'none';
+    });
+
+    // 当用户点击模态框外部时关闭模态框
+    window.addEventListener('click', (event) => {
+        if (event.target === guideModal) {
+        guideModal.style.display = 'none';
+        }
+    });
+    // 属性对象
+    const attributes = {
+        health: 100,
+        attack: 50,
+        agility: 30,
+        intelligence: 20
+    };
+
+    // 获取属性输入框元素
+    const attributeInputs = {
+        health: document.getElementById('health'),
+        attack: document.getElementById('attack'),
+        agility: document.getElementById('agility'),
+        intelligence: document.getElementById('intelligence')
+    };
+    const attributeChangeDisplays = {
+        health: document.getElementById('health-change'),
+        attack: document.getElementById('attack-change'),
+        agility: document.getElementById('agility-change'),
+        intelligence: document.getElementById('intelligence-change')
+    };
+
+    // 更新属性显示
+    function updateAttributesDisplay() {
+        Object.keys(attributes).forEach(key => {
+        attributeInputs[key].value = attributes[key];
+        });
+    }
+
+    // 初始化属性显示
+    updateAttributesDisplay();
+
+    let prompt = "";
+    const promptFileUrl = "2.txt";  // 替换为你的文件地址
+    let items = [];
+    let selectedItems = [];
+    let currentPage = 0;
+    
+
+    fetch('danyao1.txt')
+    .then(response => response.text())
+    .then(data => {
+        items = data.split('\n');
+        console.log(`items 数组中的内容数量: ${items.length}`);  // 输出 items 数组的长度
+        updatePage();
+    });
+    
+    function updatePage() {
+        document.getElementById('items').innerHTML = '';
+        for (let i = 0; i < 8; i++) {
+            let index = 8 * currentPage + i;
+            if (index >= items.length) break;
+
+            let btn = document.createElement('button'); // 创建一个新的按钮元素
+            btn.innerText = items[index]; // 设置按钮文本为当前项目
+            btn.className = 'material-button'; // 应用新的样式类
+            btn.onclick = function() {
+                if (selectedItems.length < 6) { // 最多选择六个物品
+                    selectedItems.push(this.innerText);// 将选中的物品添加到数组中
+                    updateSelected();// 更新选中的物品显示
+                }
+            };
+            document.getElementById('items').appendChild(btn); // 将按钮添加到 #items 容器中
+        }
+    }
+
+    function updateSelected() {
+        const leftSide = document.getElementById('selected-items');
+        leftSide.innerHTML = ''; // 清空之前的选中项
+        selectedItems.forEach(item => {
+            const button = document.createElement('button');
+            button.className = 'selected-item-button';
+            button.innerText = item;
+            button.onclick = () => {
+                // 点击按钮后让它消失
+                button.remove();
+                // 同时从 selectedItems 数组中移除该项
+                selectedItems = selectedItems.filter(selectedItem => selectedItem !== item);
+            };
+            leftSide.appendChild(button);
+        });
+        //document.getElementById('left-side').innerHTML = selectedItems.join('<br>');
+    }
+
+    function changePage(amount) {
+        let newPage = currentPage + amount;
+
+        if (newPage >= 0 && newPage <= Math.ceil(items.length / 8) - 1) {
+            currentPage = newPage;
+            updatePage();
+        }
+    }
+    async function loadPrompt() {
+        try {
+            const response = await fetch(promptFileUrl);
+            if (!response.ok) throw new Error("无法加载提示词文件");
+            prompt = await response.text();  // 将文件内容存储到prompt变量
+        } catch (error) {
+            console.error("读取文件时出错:", error);
+            prompt = "";  // 出错时清空prompt
+        }
+    }
+    async function generateResponse(userInput, prompt) {
+        const apiKey = "sk-uKLGvSNNXkeXgu5MFc76E056E6A7436b91A0Fc90B328C56e";  // 替换为你的API密钥
+        const model = "Yi-1_5-9B-Chat-16K";  // 使用的模型
+        
+        // 发送请求到OpenAI API
+        const response = await fetch("https://cloud.perfxlab.cn/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [{"role": "user", "content": userInput}],
+                temperature: 1,
+                max_tokens: 700,
+                presence_penalty: 0.5,
+                frequency_penalty: 0.5
+            })
+        });
+        
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+    const consumeButton = document.getElementById('consumeButton');
+    async function addshuzhi() {
+
+        //const selectedMaterials = selectedItems.join('\n');
+        const userInput = `给你一个丹药的信息，返回四个int整数（必须只返回数字），以换行为分割：
+                        \n\n${pillInfo}
+                        \n\\n回复四个整数，分别对应服用此丹药后生命值，攻击力，敏捷，智力的变化数值，范围在（-1000，1000）之内，为int整数。`;
+        //await loadPrompt();  // 可以根据需要加载更复杂的提示
+        const response = await generateResponse(userInput);
+        console.log(response)
+        //const filteredResponse = chineseOnly(response);
+        console.log(typeof response); 
+        return response;  // 返回生成的有效信息
+    }
+    consumeButton.addEventListener('click', async () => {
+        if (pillCount === 0) {
+            alert('没有丹药了！');
+            return;
+        }
+        // 设置按钮为禁用状态并显示“服用中...”
+        consumeButton.disabled = true;
+        consumeButton.textContent = '服用中...';
+        pillCount--;
+        // 模拟服用过程（例如，等待一段时间）
+        
+        const temp1 = await addshuzhi();
+        console.log(typeof temp1); // 输出: "string"
+        const numberArray = temp1.split('\n').map(Number);
+
+        console.log(numberArray); // 输出: [123, 456, 789, 12]*/
+            // 更新属性值
+            //属性更新
+        attributes.health += numberArray[0];
+        attributes.attack += numberArray[1];
+        attributes.agility += numberArray[2];
+        attributes.intelligence += numberArray[3];
+        updateAttributesDisplay();
+        // 显示属性变化
+        attributeChangeDisplays.health.textContent = ` (${numberArray[0]})`;
+        attributeChangeDisplays.attack.textContent = ` (${numberArray[1]})`;
+        attributeChangeDisplays.agility.textContent = ` (${numberArray[2]})`;
+        attributeChangeDisplays.intelligence.textContent = ` (${numberArray[3]})`;
+        //console.log(pillInfo);
+            // 重置按钮文本并启用按钮
+        consumeButton.disabled = false;
+        consumeButton.textContent = '服用';
+        // 0.2秒后完成服用过程
+    });
+
+    function chineseOnly(text) {
+        // 保留中文字符和常用标点符号
+        return text.replace(/[^\u4e00-\u9fa5，。！？]/g, '');
+    }
+    // 生成格式化的字符串
+   function formatSelectedButtonsInfo() {
+        return selectedButtonsInfo.map(info => `${info.name} (${info.tooltip})`).join('\n');
+    }
+
+    function formatOutput(text) {
+    // 分割输入文本
+    let namePart = '';
+            let gradePart = '';
+            let effectPart = '';
+
+            if (text.includes("丹药名称")) {
+                const parts = text.split("丹药名称");
+                if (parts.length > 1) {
+                    namePart = parts[1].split("丹药品级")[0].trim();
+                } else {
+                    console.error("未找到丹药名称部分");
+                }
+            }
+
+            if (text.includes("丹药品级")) {
+                const parts = text.split("丹药品级");
+                if (parts.length > 1) {
+                    gradePart = parts[1].split("丹药功效")[0].trim();
+                } else {
+                    console.error("未找到丹药品级部分");
+                }
+            }
+
+            if (text.includes("丹药功效")) {
+                const parts = text.split("丹药功效");
+                if (parts.length > 1) {
+                    effectPart = parts[1].trim();
+                } else {
+                    console.error("未找到丹药功效部分");
+                }
+            }
+    // 提取丹药名称、丹药品级和丹药功效
+    let name = namePart;
+    let grade = gradePart;
+    let effect = effectPart;
+    // 格式化输出
+    let formattedParts = [
+        `<p><strong>丹药名称:</strong> ${name}</p>`,
+        `<p><strong>丹药品级:</strong> ${grade}</p>`,
+        `<p><strong>丹药功效:</strong> ${""}</p>`
+    ];
+
+    // 处理丹药功效，每行20个字符，并在每行前加四个空格
+    while (effect.length > 20) {
+        formattedParts.push(`<p>    ${effect.slice(0, 20)}</p>`); // 每行前加四个空格
+        effect = effect.slice(20);
+    }
+    formattedParts.push(`<p>    ${effect}</p>`); // 处理最后一行
+
+    return formattedParts.join('');
+    }
+
+    document.getElementById("generateButton").onclick = async function() {
+
+        const modal = document.getElementById("loadingModal");
+        modal.style.display = "block";
+
+        const materialsInput = document.getElementById("materialsInput").value;
+        const materials = materialsInput.split('、').map(material => material.trim()).join(', ');
+        
+        const userInput = `我正在用${materials}炼制一个丹药，我需要你帮我生成以下信息：...
+                           \n\n1. 丹药名称：请严格以“丹药名称:”开头，长度为四到十个字，丹药名称并不一定包含材料中的字，可以自由发挥，需要有创造力，让人耳目一新，具有各种各类小说的意味。...
+                           \n\n2. 丹药品级：请严格以“丹药品级:”开头，长度必须为六个字，内容必须少于10字。...
+                           \n\n3. 丹药功效：请严格以“丹药功效:”开头，长度不超过二百字,可以有标点符号，句号结尾，根据丹药名称和给与的材料编写丹药的功效,可以参考给出的背景来设定，写明丹药来自哪里，为丹药写一个介绍，可能是由谁第一个炼制或者有什么出名的故事等等，添加五行元素,正面负面作用是什么,为什么会有这些作用。...`;
+
+        await loadPrompt();  // 可以根据需要加载更复杂的提示
+        const response = await generateResponse(prompt + userInput);
+        const filteredResponse = chineseOnly(response);
+        const formattedOutput = formatOutput(filteredResponse);
+        document.getElementById("output").innerHTML = formattedOutput;
+        // 隐藏模态框
+        modal.style.display = "none";
+    };
+    async function generateSelectedOutput() {
+        if (selectedItems.length === 0) {
+            alert("请先选择一些物品！");
+            return;
+        }
+        bgm.play();
+        const modal = document.getElementById("loadingModal");
+        modal.style.display = "block";
+        const temp = formatSelectedButtonsInfo()
+        const selectedMaterials = selectedItems.join('\n');
+        const userInput = `我正在用以下材料炼制一个丹药，括号内为丹药材料解释，且带括号的丹药材料为强效材料，请帮我生成丹药的信息：
+                           \n\n${selectedMaterials+temp}
+                           \n\n1. 丹药名称：请严格以“丹药名称:”开头，长度为四到十个字，丹药名称并不一定包含材料中的字，可以自由发挥，需要有创造力，让人耳目一新，具有各种各类小说的意味。
+                           \n\n2. 丹药品级：请严格以“丹药品级:”开头，长度必须为六个字，内容必须少于10字。
+                           \n\n3. 丹药功效：请严格以“丹药功效:”开头，长度不超过二百字,可以有标点符号，句号结尾，根据丹药名称和给与的材料编写丹药的功效,可以参考给出的背景来设定，写明丹药来自哪里，为丹药写一个介绍，可能是由谁第一个炼制或者有什么出名的故事等等，添加五行元素，正面负面作用是什么,为什么会有这些作用。...`;
+                            
+        await loadPrompt();  // 可以根据需要加载更复杂的提示
+        
+        /*console.log(userInput);
+        console.log(prompt);*/
+        const response = await generateResponse(prompt + userInput);
+        const filteredResponse = chineseOnly(response);
+        const formattedOutput = formatOutput(filteredResponse);
+        
+        pillCount+=1
+        pillInfo = filteredResponse
+        
+        // 创建一个新的按钮并插入到页面中
+        const button = document.createElement('button');
+        button.className = 'danyao-button';
+        button.innerHTML = formattedOutput;
+        button.onclick = () => {
+            // 这里可以添加点击按钮后的逻辑
+            alert('你点击了丹药信息按钮！');
+            button.remove(); // 点击后让按钮消失
+        // 隐藏模态框
+        
+        };
+        modal.style.display = "none";
+        
+        // 关闭模态框
+        document.querySelector('.modal .close').onclick = function() {
+        document.getElementById("loadingModal").style.display = "none";
+        };
+
+        document.getElementById("output").innerHTML = ''; // 清空之前的输出
+        document.getElementById("output").appendChild(button);
+    }
+</script>
+
+</body>
+</html>
