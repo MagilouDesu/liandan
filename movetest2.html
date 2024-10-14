@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可移动物体页面</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            background-image: url('map2.png'); /* 设置背景图片 */
+            background-size: cover; /* 使背景图片覆盖整个视口 */
+            background-position: center; /* 使背景图片居中 */
+            background-repeat: no-repeat; /* 防止背景图片重复 */
+        }
+
+        #object {
+            width: 50px;
+            height: 50px;
+            background-color: blue;
+            background-image: url('1.png'); /* 设置物体图片 */
+            background-size: contain; /* 使图片适应容器大小 */
+            background-repeat: no-repeat; /* 防止图片重复 */
+            background-position: center; /* 使图片居中 */
+            position: absolute;
+            top: 50px; /* 起始位置 */
+            left: 50px; /* 起始位置 */
+        }
+
+        #target-area {
+            width: 200px;
+            height: 200px;
+            background-image: url('luzi.png'); /* 设置目标区域图片 */
+            background-size: contain; /* 使图片适应容器大小 */
+            background-repeat: no-repeat; /* 防止图片重复 */
+            background-position: center; /* 使图片居中 */
+            border: 2px solid red;
+            position: absolute;
+            bottom: 300px; /* 目标区域距离底部 */
+            right: 800px; /* 目标区域距离右侧 */
+        }
+
+        #instructions {
+            position: absolute;
+            top: 10px;
+            left: 800px;
+            font-size: 18px;
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        .music-control {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        .music-control button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #4CAF50; /* Green */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .music-control button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgm" src="music.mp3" autoplay loop muted></audio>
+    
+    <div id="target-area"></div>
+    <div id="object"></div>
+    
+    <!-- 添加说明文字 -->
+    <div id="instructions">
+        <p><strong>操作指南：</strong></p>
+        <ul>
+            <li>使用 <kbd>W</kbd> 键向上移动物体。</li>
+            <li>使用 <kbd>A</kbd> 键向左移动物体。</li>
+            <li>使用 <kbd>S</kbd> 键向下移动物体。</li>
+            <li>使用 <kbd>D</kbd> 键向右移动物体。</li>
+            <li>将物体移动到炼丹炉内，即可进行炼丹。</li>
+        </ul>
+    </div>
+
+    <!-- 添加音乐控制按钮 -->
+    <div class="music-control">
+        <button onclick="toggleMusic()">播放/暂停音乐</button>
+    </div>
+
+    <script>
+        const object = document.getElementById('object');
+        const targetArea = document.getElementById('target-area');
+        const bgm = document.getElementById('bgm');
+
+        let stepSize = 10; // 每次移动的步长
+
+        // 使用 WASD 键移动物体
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'w': // 向上移动
+                    object.style.top = `${parseInt(object.style.top || 0) - stepSize}px`;
+                    break;
+                case 'a': // 向左移动
+                    object.style.left = `${parseInt(object.style.left || 0) - stepSize}px`;
+                    break;
+                case 's': // 向下移动
+                    object.style.top = `${parseInt(object.style.top || 0) + stepSize}px`;
+                    break;
+                case 'd': // 向右移动
+                    object.style.left = `${parseInt(object.style.left || 0) + stepSize}px`;
+                    break;
+            }
+
+            // 检查是否进入目标区域
+            const objectRect = object.getBoundingClientRect();
+            const targetRect = targetArea.getBoundingClientRect();
+
+            if (
+                objectRect.right > targetRect.left &&
+                objectRect.bottom > targetRect.top &&
+                objectRect.left < targetRect.right &&
+                objectRect.top < targetRect.bottom
+            ) {
+                window.location.href = 'http://localhost:8000/index.html'; // 替换为你的炼丹模拟器页面地址
+            }
+        });
+
+        // 切换音乐播放状态
+        function toggleMusic() {
+            if (bgm.paused) {
+                bgm.muted = false;
+                bgm.play();
+            } else {
+                bgm.pause();
+            }
+        }
+
+        // 尝试自动播放音乐
+        try {
+            bgm.play();
+        } catch (error) {
+            console.error('音乐未能自动播放，请手动点击播放按钮。');
+        }
+    </script>
+
+</body>
+</html>
